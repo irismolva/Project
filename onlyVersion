@@ -1,6 +1,7 @@
-// Main.java — Students version
+
 import java.io.*;
 import java.util.*;
+import java.nio.file.Paths;
 
 public class Main {
     static final int MONTHS = 12;
@@ -13,23 +14,18 @@ public class Main {
     static int[][][] profitData= new int [MONTHS][DAYS][COMMS];
     
 
-    // ======== REQUIRED METHOD LOAD DATA (Students fill this) ========
+    
     public static void loadData() {
         for (int i = 0; i < MONTHS; i++) {
-            String fileName = "Data_Files/" + months[i] + ".txt";
-            File file = new File(fileName);
-
-            if (!file.exists()) continue;
             Scanner sc = null;
             try {
-                sc = new Scanner(file);
-
+                sc = new Scanner(Paths.get("Data_Files", months[i] + ".txt"));
                 if (sc.hasNextLine()) {
                     sc.nextLine();
                 }
                 while (sc.hasNextLine()) {
                     String line = sc.nextLine();
-                    if (!line.trim().isEmpty()) {
+                    if (line.trim().length() > 0) {
                         String[] parts = line.split(",");
                         if (parts.length >= 3) {
                             try {
@@ -52,6 +48,7 @@ public class Main {
                     }
                 }
             } catch (Exception e) {
+                continue;
             }
             finally {
                 if (sc != null) sc.close();
@@ -61,7 +58,6 @@ public class Main {
 
 
 
-    // ======== 10 REQUIRED METHODS (Students fill these) ========
 
     public static String mostProfitableCommodityInMonth(int month) {
         if (month < 0 || month >= MONTHS) {
