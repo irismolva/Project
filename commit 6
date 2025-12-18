@@ -1,0 +1,323 @@
+// Main.java — Students version
+import java.io.*;
+import java.util.*;
+import java.nio.file.Paths;
+
+public class Main {
+    static final int MONTHS = 12;
+    static final int DAYS = 28;
+    static final int COMMS = 5;
+    static String[] commodities = {"Gold", "Oil", "Silver", "Wheat", "Copper"};
+    static String[] months = {"January","February","March","April","May","June",
+                              "July","August","September","October","November","December"};
+
+    static int[][][] profitData= new int [MONTHS][DAYS][COMMS];
+    
+
+    // ======== REQUIRED METHOD LOAD DATA (Students fill this) ========
+    public static void loadData() {
+        for (int i = 0; i < MONTHS; i++) {
+            Scanner sc = null;
+            try {
+                sc = new Scanner(Paths.get("Data_Files", months[i] + ".txt"));
+                if (sc.hasNextLine()) {
+                    sc.nextLine();
+                }
+                while (sc.hasNextLine()) {
+                    String line = sc.nextLine();
+                    if (line.trim().length() > 0) {
+                        String[] parts = line.split(",");
+                        if (parts.length >= 3) {
+                            try {
+                                int day = Integer.parseInt(parts[0].trim());
+                                String commodityName = parts[1].trim();
+                                int profit = Integer.parseInt(parts[2].trim());
+                                int commodityIndex = -1;
+                                for (int m = 0; m < COMMS; m++) {
+                                    if (commodities[m].equals(commodityName)) {
+                                        commodityIndex = m;
+                                        break;
+                                    }
+                                }
+                                if (day >= 1 && day <= DAYS && commodityIndex != -1) {
+                                    profitData[i][day - 1][commodityIndex] = profit;
+                                }
+                            } catch (NumberFormatException e) {
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                continue;
+            }
+            finally {
+                if (sc != null) sc.close();
+            }
+        }
+    }
+
+
+
+    // ======== 10 REQUIRED METHODS (Students fill these) ========
+
+    public static String mostProfitableCommodityInMonth(int month) {
+        if (month < 0 || month >= MONTHS) {
+            return "INVALID_MONTH";
+        }
+        int[] total= new int[COMMS];
+        for (int i = 0; i< DAYS; i++) {
+           
+            for (int m = 0; m < COMMS; m++) {
+                total[m] += profitData[month][i][m];
+            }
+        }
+        int maxIndex = 0;          
+        int maxProfit = total[0]; 
+
+        for (int k= 1; k< COMMS; k++) { 
+            if (total[k] > maxProfit) {
+                maxProfit = total[k]; 
+                maxIndex = k;          
+            }
+        }
+        return commodities[maxIndex] + " " + maxProfit;
+    }
+
+    public static int totalProfitOnDay(int month, int day) {
+        if (month < 0 || month >= MONTHS || day < 1 || day > DAYS) {
+            return -99999;
+        }
+        int total = 0;
+        for (int i= 0; i< COMMS; i++) {
+            total += profitData[month][day - 1][i];
+        }
+
+        
+        return total;
+    }
+
+    public static int commodityProfitInRange(String commodity, int from, int to) {
+        if(from>to || from<1 || to>28){
+            return -99999;
+        }
+        int commIndex=-1;
+        for(int i=0;i<COMMS;i++){
+            if(commodities[i].equals(commodity)){
+                commIndex=i;
+                break;
+            }
+        }
+        if (commIndex == -1) {
+            return -99999;
+        }
+       int profit=0;
+        for(int i=0;i<MONTHS;i++){
+            for(int m=from;m<=to;m++){
+                profit+=profitData[i][m-1][commIndex];
+            }
+        }
+        
+        return profit;
+    }
+
+    public static int bestDayOfMonth(int month) { 
+        if(month<0 || month>=MONTHS){
+            return -1;
+        }
+     
+        int bestDay=1;
+        int maxProfit=-999999999;
+        for(int i=0;i<DAYS;i++){
+            int totalOfDay=0;
+            for(int m=0;m<COMMS;m++){
+                totalOfDay+= profitData[month][i][m];
+            }
+            if(totalOfDay>maxProfit){
+                maxProfit=totalOfDay;
+               bestDay=i+1;
+                
+            }
+        }
+        return bestDay; 
+    }
+    
+    public static String bestMonthForCommodity(String comm) {
+        int commIndex=-1;
+        for(int i=0;i<COMMS;i++){
+            if(commodities[i].equals(comm)){
+                commIndex=i;
+                break;
+            }
+        }
+        if (commIndex==-1){
+            return "INVALID_COMMODITY";
+        }
+        int bestMonthIndex=0;
+        int maxProfit=-999999999;
+        for(int i=0;i<MONTHS;i++){
+            int totalOfMonth=0;
+            for(int m=0;m<DAYS;m++){
+                totalOfMonth+=profitData[i][m][commIndex];
+            }
+            if(totalOfMonth>maxProfit){
+                maxProfit=totalOfMonth;
+                bestMonthIndex=i;
+                
+            }
+        }
+        return months[bestMonthIndex]; 
+    }
+
+    public static int consecutiveLossDays(String comm) {
+        int commIndex=-1;
+        for(int i=0;i<COMMS;i++){
+            if(commodities[i].equals(comm)){
+                commIndex=i;
+                break;
+            }
+        }
+        if(commIndex==-1){
+            return -1;
+        }
+        int maxDays=0;
+        int currentDays=0;
+        for(int i=0;i<MONTHS;i++){
+            for(int m=0; m<DAYS;m++){
+                if(profitData[i][m][commIndex]<0){
+                    currentDays++;
+                }else{
+                    if(currentDays>maxDays){
+                        maxDays=currentDays;
+                    }
+                    currentDays=0;
+                }
+            }
+        }if(currentDays>maxDays){
+            maxDays=currentDays;
+        }
+            
+        return maxDays; 
+    }
+    
+    public static int daysAboveThreshold(String comm, int threshold) {
+        int commIndex=-1;
+        for(int i=0;i<COMMS;i++){
+            if(commodities[i].equals(comm)){
+                commIndex=i;
+                break;
+            }
+        }
+        if(commIndex==-1){
+            return -1;
+        }
+        int days=0;
+        for(int i=0;i<MONTHS;i++){
+            for(int m=0;m<DAYS;m++){
+                if(profitData[i][m][commIndex]>threshold){
+                    days++;
+                }
+            }
+        }
+        
+        return days; 
+    }
+
+    public static int biggestDailySwing(int month) {
+        if(month<0 || month>=MONTHS){
+            return -99999;
+        }
+        int maxSwing=0;
+        for(int i=0;i<DAYS-1;i++){
+            int dayTotal=0;
+            int nextDayTotal=0;
+            for(int m=0;m<COMMS;m++){
+                dayTotal+=profitData[month][i][m];
+                nextDayTotal+=profitData[month][i+1][m];
+            }
+            int swing= Math.abs(dayTotal-nextDayTotal);
+            if(swing>maxSwing){
+                maxSwing=swing;
+            }
+        }
+        return maxSwing; 
+    }
+    
+    public static String compareTwoCommodities(String c1, String c2) {
+
+        int commIndex1=-1;
+        for(int i=0;i<COMMS;i++){
+            if(commodities[i].equals(c1)){
+                commIndex1=i;
+                break;
+            }
+        }
+        int commIndex2=-1;
+        for(int i=0;i<COMMS;i++){
+            if(commodities[i].equals(c2)){
+                commIndex2=i;
+                break;
+            }
+        }
+        if(commIndex1==-1  || commIndex2==-1){
+             return("INVALID_COMMODITY");
+        }
+        int total1=0;
+        int total2=0;
+        for (int i=0;i<MONTHS;i++){
+            for(int m=0;m<DAYS;m++){
+                total1+=profitData[i][m][commIndex1];
+                total2+=profitData[i][m][commIndex2];
+            }
+        }
+        int x= Math.abs(total1-total2);
+        if(total1>total2){
+            return (commodities[commIndex1] +" is better by "+x);
+        }else if(total1<total2) {
+            return (commodities[commIndex2] + " is better by " +x);
+        }
+        else{
+            return "Equal";
+            }
+      
+    }
+    
+    public static String bestWeekOfMonth(int month) { 
+        if(month<0 || month>=MONTHS){
+            return "INVALID_MONTH";
+        }
+        int [] weekProfits=new int[4];
+        int maxWeekProfit=-999999999;
+        int bestWeek=0;
+        
+            for(int m=0;m<7;m++){
+                for (int k=0; k<COMMS; k++) {
+                    weekProfits[0] += profitData[month][m][k];
+                }
+            } for(int m=7;m<14;m++){
+                for (int k=0; k<COMMS; k++) {
+                    weekProfits[1] += profitData[month][m][k];
+                }
+            } for(int m=14;m<21;m++){
+                for (int k=0; k<COMMS; k++) {
+                    weekProfits[2] += profitData[month][m][k];
+                }
+            } for(int m=21;m<28;m++){
+                for (int k=0; k<COMMS; k++) {
+                    weekProfits[3] += profitData[month][m][k];
+                }
+            }
+            for(int a=0;a<4;a++){
+                if(weekProfits[a]>maxWeekProfit){
+                    maxWeekProfit=weekProfits[a];
+                    bestWeek=a+1;
+                }
+            }
+            
+        return ("Week "+bestWeek); 
+    }
+
+    public static void main(String[] args) {
+        loadData();
+        System.out.println("Data loaded – ready for queries");
+    }
+}
